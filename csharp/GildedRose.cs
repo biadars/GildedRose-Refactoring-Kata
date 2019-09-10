@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters;
 
 namespace csharp
 {
@@ -14,76 +16,55 @@ namespace csharp
         {
             for (var i = 0; i < Items.Count; i++)
             {
-                if (Items[i].Name != "Aged Brie" && Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
+                switch (Items[i].Name)
                 {
-                    if (Items[i].Quality > 0)
-                    {
-                        if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                        {
-                            Items[i].Quality = Items[i].Quality - 1;
-                        }
-                    }
-                }
-                else
-                {
-                    if (Items[i].Quality < 50)
-                    {
-                        Items[i].Quality = Items[i].Quality + 1;
-
-                        if (Items[i].Name == "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].SellIn < 11)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-
-                            if (Items[i].SellIn < 6)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                {
-                    Items[i].SellIn = Items[i].SellIn - 1;
-                }
-
-                if (Items[i].SellIn < 0)
-                {
-                    if (Items[i].Name != "Aged Brie")
-                    {
-                        if (Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].Quality > 0)
-                            {
-                                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                                {
-                                    Items[i].Quality = Items[i].Quality - 1;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Items[i].Quality = Items[i].Quality - Items[i].Quality;
-                        }
-                    }
-                    else
-                    {
-                        if (Items[i].Quality < 50)
-                        {
-                            Items[i].Quality = Items[i].Quality + 1;
-                        }
-                    }
+                    case "Aged Brie":
+                        Items[i] = UpdateAgedBrie(Items[i]);
+                        break;
+                    case "Backstage passes to a TAFKAL80ETC concert":
+                        Items[i] = UpdateBackstagePass(Items[i]);
+                        break;
+                    case "Sulfuras, Hand of Ragnaros":
+                        break;
+                    default:
+                        Items[i] = UpdateRegularItem(Items[i]);
+                        break;
                 }
             }
+        }
+
+        public Item UpdateAgedBrie(Item brie)
+        {
+            brie.SellIn--;
+            if (brie.Quality < 50)
+                brie.Quality++;
+            if (brie.SellIn < 0 && brie.Quality < 50)
+                brie.Quality++;
+            return brie;
+        }
+
+        public Item UpdateBackstagePass(Item backstagePass)
+        {
+            if (backstagePass.SellIn <= 0)
+                backstagePass.Quality = 0;
+            else if (backstagePass.SellIn <= 5 && backstagePass.Quality < 48)
+                backstagePass.Quality += 3;
+            else if (backstagePass.SellIn <= 10 && backstagePass.Quality < 49)
+                backstagePass.Quality += 2;
+            else if (backstagePass.Quality < 50)
+                backstagePass.Quality++;
+            backstagePass.SellIn--;
+            return backstagePass;
+        }
+
+        public Item UpdateRegularItem(Item item)
+        {
+            if (item.Quality > 0)
+                item.Quality--;
+            if (item.Quality > 0 && item.SellIn <= 0)
+                item.Quality--;
+            item.SellIn--;
+            return item;
         }
     }
 }
