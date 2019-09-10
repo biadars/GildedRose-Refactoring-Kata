@@ -45,46 +45,44 @@ namespace csharp
         public void UpdateAgedBrie(Item brie)
         {
             brie.SellIn--;
-            if (brie.Quality < 50)
-                brie.Quality++;
-            if (brie.SellIn < 0 && brie.Quality < 50)
-                brie.Quality++;
+            UpdateQualityValue(brie, 1);
+            if (brie.SellIn < 0)
+                UpdateQualityValue(brie, 1);
         }
 
         public void UpdateBackstagePass(Item backstagePass)
         {
             if (backstagePass.SellIn <= 0)
                 backstagePass.Quality = 0;
-            else if (backstagePass.SellIn <= 5 && backstagePass.Quality < 48)
-                backstagePass.Quality += 3;
-            else if (backstagePass.SellIn <= 10 && backstagePass.Quality < 49)
-                backstagePass.Quality += 2;
-            else if (backstagePass.Quality < 50)
-                backstagePass.Quality++;
+            else if (backstagePass.SellIn <= 5)
+                UpdateQualityValue(backstagePass, 3);
+            else if (backstagePass.SellIn <= 10)
+                UpdateQualityValue(backstagePass, 2);
+            else
+                UpdateQualityValue(backstagePass, 1);
             backstagePass.SellIn--;
         }
 
         public void UpdateConjuredItem(Item item)
         {
-            item.Quality = Math.Max(0, item.Quality - 2);
+            UpdateQualityValue(item, -2);
             if (item.SellIn <= 0)
-                item.Quality = Math.Max(0, item.Quality - 2);
+                UpdateQualityValue(item, -2);
             item.SellIn--;
 
         }
 
         public void UpdateRegularItem(Item item)
         {
-            if (item.Quality > 0)
-                item.Quality--;
-            if (item.Quality > 0 && item.SellIn <= 0)
-                item.Quality--;
+            UpdateQualityValue(item, -1);
+            if (item.SellIn <= 0)
+                UpdateQualityValue(item, -1);
             item.SellIn--;
         }
 
-        private int UpdateQualityValue(int quality, int update)
+        private void UpdateQualityValue(Item item, int update)
         {
-            return Math.Min(50, Math.Max(0, quality + update));
+            item.Quality = Math.Min(50, Math.Max(0, item.Quality + update));
         }
     }
 }
