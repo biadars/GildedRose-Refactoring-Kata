@@ -16,26 +16,29 @@ namespace csharp
 
         public void UpdateQuality()
         {
-            var exp = new Regex(@"Conjured\s");
             for (var i = 0; i < Items.Count; i++)
             {
-                switch (Items[i].Name)
-                {
-                    case "Aged Brie":
-                        UpdateAgedBrie(Items[i]);
-                        break;
-                    case "Backstage passes to a TAFKAL80ETC concert":
-                        UpdateBackstagePass(Items[i]);
-                        break;
-                    case "Sulfuras, Hand of Ragnaros":
-                        break;
-                    default:
-                        if (exp.IsMatch(Items[i].Name))
-                            UpdateConjuredItem(Items[i]);
-                        else
-                            UpdateRegularItem(Items[i]);
-                        break;
-                }
+                var action = ChooseUpdateStrategy(Items[i].Name);
+                action(Items[i]);
+            }
+        }
+
+        private Action<Item> ChooseUpdateStrategy(string name)
+        {
+            var exp = new Regex(@"Conjured\s");
+            switch (name)
+            {
+                case "Aged Brie":
+                    return UpdateAgedBrie;
+                case "Backstage passes to a TAFKAL80ETC concert":
+                    return UpdateBackstagePass;
+                case "Sulfuras, Hand of Ragnaros":
+                    return s => { };
+                default:
+                    if (exp.IsMatch(name))
+                        return UpdateConjuredItem;
+                    else
+                        return UpdateRegularItem;
             }
         }
 
@@ -77,6 +80,11 @@ namespace csharp
             if (item.Quality > 0 && item.SellIn <= 0)
                 item.Quality--;
             item.SellIn--;
+        }
+
+        private int UpdateQualityValue(int quality, int update)
+        {
+            return Math.Min(50, Math.Max(0, quality + update));
         }
     }
 }

@@ -5,7 +5,7 @@ using ApprovalTests;
 using ApprovalTests.Reporters;
 using NUnit.Framework;
 
-namespace csharp
+namespace csharp.Test
 {
     [UseReporter(typeof(DiffReporter))]
     [TestFixture]
