@@ -170,7 +170,6 @@ namespace csharp
 
         [TestCase(4, 2)]
         [TestCase(1, 0)]
-        [TestCase(0, 4)]
         public void InDateConjuredItemQualityDegradesByTwo(int days, int quality)
         {
             var Items = new List<Item> { new Item { Name = "Conjured chorizo", SellIn = days, Quality = quality } };
@@ -179,17 +178,17 @@ namespace csharp
             Assert.AreEqual(Math.Max(0, quality - 2), Items[0].Quality);
         }
 
+        [TestCase(0, 99)]
         [TestCase(-1, 5)]
         [TestCase(-2, 4)]
         [TestCase(-3, 3)]
         [TestCase(-4, 0)]
-        [TestCase(-5, -1)]
         public void OutOfDateConjuredItemQualityDegradesByFour(int days, int quality)
         {
             var Items = new List<Item> { new Item { Name = "Conjured swiss cheese", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(Math.Max(0, quality - 2), Items[0].Quality);
+            Assert.AreEqual(Math.Max(0, quality - 4), Items[0].Quality);
         }
     }
 }

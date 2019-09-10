@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters;
 using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ namespace csharp
 
         public void UpdateQuality()
         {
+            var exp = new Regex(@"Conjured\s");
             for (var i = 0; i < Items.Count; i++)
             {
                 switch (Items[i].Name)
@@ -28,23 +30,25 @@ namespace csharp
                     case "Sulfuras, Hand of Ragnaros":
                         break;
                     default:
-                        UpdateRegularItem(Items[i]);
+                        if (exp.IsMatch(Items[i].Name))
+                            UpdateConjuredItem(Items[i]);
+                        else
+                            UpdateRegularItem(Items[i]);
                         break;
                 }
             }
         }
 
-        public Item UpdateAgedBrie(Item brie)
+        public void UpdateAgedBrie(Item brie)
         {
             brie.SellIn--;
             if (brie.Quality < 50)
                 brie.Quality++;
             if (brie.SellIn < 0 && brie.Quality < 50)
                 brie.Quality++;
-            return brie;
         }
 
-        public Item UpdateBackstagePass(Item backstagePass)
+        public void UpdateBackstagePass(Item backstagePass)
         {
             if (backstagePass.SellIn <= 0)
                 backstagePass.Quality = 0;
@@ -55,17 +59,24 @@ namespace csharp
             else if (backstagePass.Quality < 50)
                 backstagePass.Quality++;
             backstagePass.SellIn--;
-            return backstagePass;
         }
 
-        public Item UpdateRegularItem(Item item)
+        public void UpdateConjuredItem(Item item)
+        {
+            item.Quality = Math.Max(0, item.Quality - 2);
+            if (item.SellIn <= 0)
+                item.Quality = Math.Max(0, item.Quality - 2);
+            item.SellIn--;
+
+        }
+
+        public void UpdateRegularItem(Item item)
         {
             if (item.Quality > 0)
                 item.Quality--;
             if (item.Quality > 0 && item.SellIn <= 0)
                 item.Quality--;
             item.SellIn--;
-            return item;
         }
     }
 }
