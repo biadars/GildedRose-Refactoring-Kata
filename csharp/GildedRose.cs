@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters;
+using System.Text.RegularExpressions;
 
 namespace csharp
 {
@@ -19,15 +20,15 @@ namespace csharp
                 switch (Items[i].Name)
                 {
                     case "Aged Brie":
-                        Items[i] = UpdateAgedBrie(Items[i]);
+                        UpdateAgedBrie(Items[i]);
                         break;
                     case "Backstage passes to a TAFKAL80ETC concert":
-                        Items[i] = UpdateBackstagePass(Items[i]);
+                        UpdateBackstagePass(Items[i]);
                         break;
                     case "Sulfuras, Hand of Ragnaros":
                         break;
                     default:
-                        Items[i] = UpdateRegularItem(Items[i]);
+                        UpdateRegularItem(Items[i]);
                         break;
                 }
             }
