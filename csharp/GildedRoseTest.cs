@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 
 namespace csharp
 {
@@ -7,103 +9,162 @@ namespace csharp
     public class GildedRoseTest
     {
         [Test]
-        public void QualityDoesNotDegradeBelowZero()
+        public void InDateItemQualityDoesNotFallBellowZero()
         {
-            IList<Item> Items = new List<Item> { new Item { Name = "foo", SellIn = 0, Quality = 0 } };
+            var days = 0;
+            var quality = 0;
+            IList<Item> Items = new List<Item> { new Item { Name = "Halloumi", SellIn = days, Quality = quality } };
             GildedRose app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual("foo", Items[0].Name);
-            Assert.AreEqual(0, Items[0].Quality);
-            Assert.AreEqual(-1, Items[0].SellIn);
+            Assert.AreEqual(quality, Items[0].Quality);
         }
 
         [Test]
-        public void QualityDegradesByOne()
+        public void OutOfDateItemQualityDoesNotFallBellowZero()
         {
-            var Items = new List<Item> {new Item {Name = "Whiskey", SellIn = 4, Quality = 5}};
-            var app = new GildedRose(Items);
+            var days = -1;
+            var quality = 1;
+            IList<Item> Items = new List<Item> { new Item { Name = "Leek", SellIn = days, Quality = quality } };
+            GildedRose app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(3, Items[0].SellIn);
-            Assert.AreEqual(4, Items[0].Quality);
+            Assert.AreEqual(quality - 1, Items[0].Quality);
         }
 
-        [Test]
-        public void QualityDegradesTwiceAsFastPastSellByDate()
+        [TestCase(1)]
+        [TestCase(5)]
+        public void InDateItemQualityDegradesByOne(int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Gin", SellIn = 0, Quality = 5 } };
+            var days = 4;
+            var Items = new List<Item> {new Item {Name = "Whiskey", SellIn = days, Quality = quality}};
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(-1, Items[0].SellIn);
-            Assert.AreEqual(3, Items[0].Quality);
+            Assert.AreEqual(quality - 1, Items[0].Quality);
         }
 
-        [Test]
-        public void AgedBrieIncreasesInQualityWithAge()
+        [TestCase(2)]
+        [TestCase(100)]
+        public void OutOfDateItemQualityDegradesTwiceAsFast(int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Aged Brie", SellIn = 4, Quality = 5 } };
+            var days = 0;
+            var Items = new List<Item> { new Item { Name = "Gin", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(3, Items[0].SellIn);
-            Assert.AreEqual(6, Items[0].Quality);
+            Assert.AreEqual(quality - 2, Items[0].Quality);
         }
 
-        [Test]
-        public void QualityOfItemDoesNotGoAboveFifty()
+        [TestCase(2, 34)]
+        [TestCase(1, 44)]
+        public void InDateAgedBrieIncreasesInQuality(int days, int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Aged Brie", SellIn = 4, Quality = 50 } };
+            var Items = new List<Item> { new Item { Name = "Aged Brie", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(3, Items[0].SellIn);
+            Assert.AreEqual(quality + 1, Items[0].Quality);
+        }
+
+        [TestCase(0, 0)]
+        [TestCase(-1, 32)]
+        public void OutOfDateAgedBrieDoublyIncreasesInQuality(int days, int quality)
+        {
+            var Items = new List<Item> { new Item { Name = "Aged Brie", SellIn = days, Quality = quality } };
+            var app = new GildedRose(Items);
+            app.UpdateQuality();
+            Assert.AreEqual(quality + 2, Items[0].Quality);
+        }
+
+        [TestCase(0, 49)]
+        [TestCase(4, 50)]
+        [TestCase(-1, 49)]
+        [TestCase(-1, 50)]
+        public void ItemQualityDoesNotIncreaseAboveFifty(int days, int quality)
+        {
+            var Items = new List<Item> { new Item { Name = "Aged Brie", SellIn = days, Quality = quality } };
+            var app = new GildedRose(Items);
+            app.UpdateQuality();
             Assert.AreEqual(50, Items[0].Quality);
         }
 
-        [Test]
-        public void SulfurasNeverHasToBeSoldOrDecreaseInQuality()
+        [TestCase(231)]
+        [TestCase(1)]
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void ItemSellByDateDecreasesByOne(int days)
         {
-            var Items = new List<Item> { new Item { Name = "Sulfuras, Hand of Ragnaros", SellIn = 7, Quality = 80 } };
+            var quality = 22;
+            var Items = new List<Item> {new Item() {Name = "Chorizo", SellIn = days, Quality = quality}};
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(7, Items[0].SellIn);
-            Assert.AreEqual(80, Items[0].Quality);
+            Assert.AreEqual(days - 1, Items[0].SellIn);
+        }
+
+        [TestCase(231)]
+        [TestCase(1)]
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void SulfurasSellInDateDoesNotDecrease(int days)
+        {
+            var quality = 80;
+            var Items = new List<Item> { new Item() { Name = "Sulfuras, Hand of Ragnaros", SellIn = days, Quality = quality } };
+            var app = new GildedRose(Items);
+            app.UpdateQuality();
+            Assert.AreEqual(days, Items[0].SellIn);
         }
 
         [Test]
-        public void BackstagePassesIncreaseInQuality()
+        public void SulfurasQualityDoesNotDecrease()
         {
-            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 11, Quality = 22 } };
+            var days = 7;
+            var quality = 80;
+            var Items = new List<Item> { new Item { Name = "Sulfuras, Hand of Ragnaros", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(10, Items[0].SellIn);
-            Assert.AreEqual(23, Items[0].Quality);
+            Assert.AreEqual(quality, Items[0].Quality);
         }
 
-        [Test]
-        public void BackstagePassesDoublyIncreaseInQuality()
+        [TestCase(99, 24)]
+        [TestCase(11, 50)]
+        public void OverTenDaysAwayBackstagePassesIncreaseInQuality(int days, int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 10, Quality = 23 } };
+            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(9, Items[0].SellIn);
-            Assert.AreEqual(25, Items[0].Quality);
+            Assert.AreEqual(Math.Min(50, quality + 1), Items[0].Quality);
         }
 
-        [Test]
-        public void BackstagePassesTriplyIncreaseInQuality()
+        [TestCase(10, 20)]
+        [TestCase(9, 49)]
+        [TestCase(8, 50)]
+        [TestCase(7, 2)]
+        [TestCase(6, 19)]
+        public void SixToTenDaysAwayBackstagePassesDoublyIncreaseInQuality(int days, int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 5, Quality = 33 } };
+            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(4, Items[0].SellIn);
-            Assert.AreEqual(36, Items[0].Quality);
+            Assert.AreEqual(Math.Min(50, quality + 2), Items[0].Quality);
         }
 
-        [Test]
-        public void BackstagePassesQualityDropsAfterConcert()
+        [TestCase(5, 2)]
+        [TestCase(4, 47)]
+        [TestCase(3, 50)]
+        [TestCase(2, 22)]
+        [TestCase(1, -1)]
+        public void OneToFiveDaysAwayBackstagePassesTriplyIncreaseInQuality(int days, int quality)
         {
-            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 0, Quality = 48 } };
+            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = days, Quality = quality } };
             var app = new GildedRose(Items);
             app.UpdateQuality();
-            Assert.AreEqual(-1, Items[0].SellIn);
+            Assert.AreEqual(Math.Min(50, quality + 3), Items[0].Quality);
+        }
+
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void OutOfDateBackstagePassesQualityDropsToZero(int days)
+        {
+            var quality = 48;
+            var Items = new List<Item> { new Item { Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = days, Quality = quality } };
+            var app = new GildedRose(Items);
+            app.UpdateQuality();
             Assert.AreEqual(0, Items[0].Quality);
         }
     }
